@@ -1,41 +1,36 @@
-from flask import Flask, request, jsonify, send_file  
+
+from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
-import os
-
-# Load saved model and scaler
-model = joblib.load("Fish Model.pkl")
-scaler = joblib.load("Fish scaler.pkl")
-label_encoder = joblib.load("label_encoder.pkl")
 
 # Initialize Flask app
-app = Flask(__name__, template_folder="index.html")
+app = Flask(__name__)
 
-# Serve the HTML frontend
-@app.route('/')
+# Load pre-trained model
+model = joblib.load("model.pkl")  # Ensure model.pkl exists in the same directory
+
+# Home route (optional)
+@app.route("/")
 def home():
-     return send_file('index.html')   # This serves the HTML file
+    return render_template("index.html")  # Ensure Lab4.html is in the correct location
 
-# Prediction API
-@app.route('/predict', methods=['POST'])
+# Prediction route
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
-        # Get input data from request
+        # Parse incoming request
         data = request.get_json()
-        features = [data['features']]
-        
-        # Scale the input features
-        scaled_features = scaler.transform(features)
-        
-        # Make a prediction
-        species_pred = model.predict(scaled_features)[0]
-        species_name = label_encoder.inverse_transform([species_pred])[0]
+        features = np.array(data["features"]).reshape(1, -1)  # Convert to 2D array
 
-        return jsonify({"predicted_species": species_name})
-    
+        # Make prediction
+        predicted_weight = model.predict(features)[0]
+
+        # Return JSON response
+        return jsonify({"predicted_weight": round(predicted_weight, 2)})
+
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
 
-# Run Flask inside Jupyter Notebook
-if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+# Run the app
+if __name__ == "__main__":
+    app.run(debug=True)
