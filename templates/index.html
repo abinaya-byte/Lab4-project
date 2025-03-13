@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fish Weight Predictor</title>
+</head>
+<body>
+    <h2>Enter Fish Measurements</h2>
+    <form id="predictionForm">
+        <label>Length1:</label> <input type="number" id="length1" required><br>
+        <label>Length2:</label> <input type="number" id="length2" required><br>
+        <label>Length3:</label> <input type="number" id="length3" required><br>
+        <label>Height:</label> <input type="number" id="height" required><br>
+        <label>Width:</label> <input type="number" id="width" required><br>
+        <button type="button" onclick="predictWeight()">Predict</button>
+    </form>
+    <h3 id="result"></h3>
+    <script>
+        function predictWeight() {
+            let features = [
+                parseFloat(document.getElementById("length1").value),
+                parseFloat(document.getElementById("length2").value),
+                parseFloat(document.getElementById("length3").value),
+                parseFloat(document.getElementById("height").value),
+                parseFloat(document.getElementById("width").value)
+            ];
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'features': features })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = "Predicted Weight: " + data.predicted_weight + " grams";
+            });
+        }
+    </script>
+</body>
+</html>
